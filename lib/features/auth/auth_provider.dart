@@ -39,7 +39,7 @@ class AuthService {
   Future<void> sendMagicLink(String email) async {
     await _client.auth.signInWithOtp(
       email: email,
-      emailRedirectTo: 'io.supabase.parkshare://login-callback',
+      emailRedirectTo: 'https://lukaszjozef.github.io/parkshare-app/',
     );
   }
 
