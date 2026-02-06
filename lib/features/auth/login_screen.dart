@@ -94,6 +94,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _sendMagicLink(),
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     hintText: 'twoj@email.pl',
