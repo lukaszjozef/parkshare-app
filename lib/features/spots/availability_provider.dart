@@ -1,6 +1,51 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/legacy.dart';
 import '../../core/supabase_client.dart';
 import 'spots_provider.dart';
+
+// Search filters state
+class SearchFilters {
+  final String? building;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+
+  SearchFilters({this.building, this.dateFrom, this.dateTo});
+
+  SearchFilters copyWith({
+    String? building,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    bool clearBuilding = false,
+    bool clearDateFrom = false,
+    bool clearDateTo = false,
+  }) {
+    return SearchFilters(
+      building: clearBuilding ? null : (building ?? this.building),
+      dateFrom: clearDateFrom ? null : (dateFrom ?? this.dateFrom),
+      dateTo: clearDateTo ? null : (dateTo ?? this.dateTo),
+    );
+  }
+
+  bool get hasFilters => building != null || dateFrom != null || dateTo != null;
+}
+
+final searchFiltersProvider = StateProvider<SearchFilters>((ref) => SearchFilters());
+
+// Available buildings list
+final availableBuildingsProvider = FutureProvider<List<String>>((ref) async {
+  final client = SupabaseClientManager.client;
+  final response = await client
+      .from('parking_spots')
+      .select('building')
+      .eq('is_active', true);
+
+  final buildings = (response as List)
+      .map((r) => r['building'] as String)
+      .toSet()
+      .toList();
+  buildings.sort();
+  return buildings;
+});
 
 // Available spots feed (all active availability)
 final availableSpotsProvider = FutureProvider<List<AvailableSpot>>((ref) async {
@@ -19,6 +64,34 @@ final availableSpotsProvider = FutureProvider<List<AvailableSpot>>((ref) async {
       .order('starts_at', ascending: true);
 
   return (response as List).map((item) => AvailableSpot.fromJson(item)).toList();
+});
+
+// Filtered available spots
+final filteredAvailableSpotsProvider = Provider<AsyncValue<List<AvailableSpot>>>((ref) {
+  final spotsAsync = ref.watch(availableSpotsProvider);
+  final filters = ref.watch(searchFiltersProvider);
+
+  return spotsAsync.whenData((spots) {
+    var filtered = spots;
+
+    // Filter by building
+    if (filters.building != null) {
+      filtered = filtered.where((s) => s.spot.building == filters.building).toList();
+    }
+
+    // Filter by date range
+    if (filters.dateFrom != null) {
+      final fromStart = DateTime(filters.dateFrom!.year, filters.dateFrom!.month, filters.dateFrom!.day);
+      filtered = filtered.where((s) => s.availability.endsAt.isAfter(fromStart)).toList();
+    }
+
+    if (filters.dateTo != null) {
+      final toEnd = DateTime(filters.dateTo!.year, filters.dateTo!.month, filters.dateTo!.day, 23, 59, 59);
+      filtered = filtered.where((s) => s.availability.startsAt.isBefore(toEnd)).toList();
+    }
+
+    return filtered;
+  });
 });
 
 // User's spot availability
@@ -120,13 +193,15 @@ class Availability {
   }
 
   String get timeRangeText {
+    final startDate = '${startsAt.day}.${startsAt.month.toString().padLeft(2, '0')}.${startsAt.year}';
+    final endDate = '${endsAt.day}.${endsAt.month.toString().padLeft(2, '0')}.${endsAt.year}';
     final startTime = '${startsAt.hour.toString().padLeft(2, '0')}:${startsAt.minute.toString().padLeft(2, '0')}';
     final endTime = '${endsAt.hour.toString().padLeft(2, '0')}:${endsAt.minute.toString().padLeft(2, '0')}';
 
-    if (startsAt.day == endsAt.day) {
-      return '$startTime - $endTime';
+    if (startsAt.day == endsAt.day && startsAt.month == endsAt.month && startsAt.year == endsAt.year) {
+      return '$startDate, $startTime - $endTime';
     }
-    return '${startsAt.day}.${startsAt.month} $startTime - ${endsAt.day}.${endsAt.month} $endTime';
+    return '$startDate $startTime - $endDate $endTime';
   }
 }
 
