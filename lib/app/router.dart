@@ -4,6 +4,7 @@ import '../core/supabase_client.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/home_screen.dart';
 import '../features/auth/onboarding_screen.dart';
+import '../features/auth/pending_approval_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/spots/spots_screen.dart';
 import '../features/spots/add_spot_screen.dart';
@@ -12,6 +13,7 @@ import '../features/spots/search_screen.dart';
 import '../features/reservations/reservations_screen.dart';
 import '../features/reservations/reserve_screen.dart';
 import '../features/chat/chat_screen.dart';
+import '../features/admin/admin_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -19,6 +21,7 @@ final router = GoRouter(
     final session = SupabaseClientManager.client.auth.currentSession;
     final isLoggedIn = session != null;
     final isLoggingIn = state.matchedLocation == '/login';
+    final isPending = state.matchedLocation == '/pending';
 
     // If not logged in and not on login page, redirect to login
     if (!isLoggedIn && !isLoggingIn) {
@@ -44,6 +47,14 @@ final router = GoRouter(
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/pending',
+      builder: (context, state) => const PendingApprovalScreen(),
+    ),
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminScreen(),
     ),
     GoRoute(
       path: '/profile',

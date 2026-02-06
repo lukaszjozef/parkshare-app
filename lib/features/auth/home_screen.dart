@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'auth_provider.dart';
 import '../reservations/reservations_provider.dart';
 import '../spots/availability_provider.dart';
+import '../admin/admin_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,17 +17,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(authServiceProvider).ensureUserExists();
+    Future.microtask(() async {
+      await ref.read(authServiceProvider).ensureUserExists();
+      // Check approval after ensuring user exists
+      _checkApproval();
     });
+  }
+
+  void _checkApproval() async {
+    final profile = await ref.read(userProfileProvider.future);
+    if (profile != null && profile['is_approved'] != true && mounted) {
+      context.go('/pending');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authService = ref.watch(authServiceProvider);
     final user = ref.watch(currentUserProvider);
+    final userProfile = ref.watch(userProfileProvider);
     final incomingRequests = ref.watch(incomingRequestsProvider);
     final availableSpots = ref.watch(availableSpotsProvider);
+    final isAdmin = ref.watch(isAdminProvider);
+
+    // Check if still loading profile
+    final isApproved = userProfile.when(
+      data: (p) => p?['is_approved'] == true,
+      loading: () => true, // Assume approved while loading
+      error: (_, __) => true,
+    );
+
+    final isAdminUser = isAdmin.when(
+      data: (v) => v,
+      loading: () => false,
+      error: (_, __) => false,
+    );
+
+    // Redirect if not approved
+    if (!isApproved && userProfile.hasValue) {
+      Future.microtask(() => context.go('/pending'));
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     // Count pending requests
     final pendingCount = incomingRequests.when(
@@ -46,6 +77,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: const Text('ParkShare'),
         actions: [
+          if (isAdminUser)
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              onPressed: () => context.go('/admin'),
+              tooltip: 'Panel admina',
+            ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.go('/profile'),

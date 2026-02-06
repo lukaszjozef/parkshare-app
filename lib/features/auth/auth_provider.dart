@@ -12,6 +12,21 @@ final currentUserProvider = Provider<User?>((ref) {
   return SupabaseClientManager.client.auth.currentUser;
 });
 
+// User profile with approval status
+final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final client = SupabaseClientManager.client;
+  final user = client.auth.currentUser;
+  if (user == null) return null;
+
+  final profile = await client
+      .from('users')
+      .select()
+      .eq('auth_id', user.id)
+      .maybeSingle();
+
+  return profile;
+});
+
 // Auth service provider
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
