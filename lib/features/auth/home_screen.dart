@@ -19,16 +19,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     Future.microtask(() async {
       await ref.read(authServiceProvider).ensureUserExists();
-      // Check approval after ensuring user exists
-      _checkApproval();
     });
-  }
-
-  void _checkApproval() async {
-    final profile = await ref.read(userProfileProvider.future);
-    if (profile != null && profile['is_approved'] != true && mounted) {
-      context.go('/pending');
-    }
   }
 
   @override
@@ -40,24 +31,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final availableSpots = ref.watch(availableSpotsProvider);
     final isAdmin = ref.watch(isAdminProvider);
 
-    // Check if still loading profile
-    final isApproved = userProfile.when(
-      data: (p) => p?['is_approved'] == true,
-      loading: () => true, // Assume approved while loading
-      error: (_, __) => true,
-    );
-
     final isAdminUser = isAdmin.when(
       data: (v) => v,
       loading: () => false,
       error: (_, __) => false,
     );
 
-    // Redirect if not approved
-    if (!isApproved && userProfile.hasValue) {
-      Future.microtask(() => context.go('/pending'));
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final isApproved = userProfile.when(
+      data: (p) => p?['is_approved'] == true,
+      loading: () => true,
+      error: (_, __) => true,
+    );
 
     // Count pending requests
     final pendingCount = incomingRequests.when(
@@ -111,6 +95,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Inactive account banner
+              if (!isApproved)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange.shade700),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Twoje konto jest nieaktywne. Skontaktuj się z administratorem.',
+                          style: TextStyle(color: Colors.orange.shade800),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Welcome card
               Card(
                 child: Padding(
@@ -177,9 +185,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 context,
                 icon: Icons.local_parking,
                 title: 'Moje miejsca',
-                subtitle: 'Dodaj i zarządzaj miejscami',
+                subtitle: isApproved
+                    ? 'Dodaj i zarządzaj miejscami'
+                    : 'Konto nieaktywne',
                 color: const Color(0xFF2563EB),
-                onTap: () => context.go('/spots'),
+                onTap: isApproved ? () => context.go('/spots') : null,
+                disabled: !isApproved,
               ),
               const SizedBox(height: 10),
 
@@ -187,12 +198,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 context,
                 icon: Icons.search,
                 title: 'Szukaj miejsca',
-                subtitle: availableCount > 0
-                    ? '$availableCount miejsc dostępnych teraz'
-                    : 'Znajdź wolne miejsce parkingowe',
+                subtitle: isApproved
+                    ? (availableCount > 0
+                        ? '$availableCount miejsc dostępnych teraz'
+                        : 'Znajdź wolne miejsce parkingowe')
+                    : 'Konto nieaktywne',
                 color: const Color(0xFF10B981),
-                onTap: () => context.go('/search'),
-                badge: availableCount > 0 ? '$availableCount' : null,
+                onTap: isApproved ? () => context.go('/search') : null,
+                badge: isApproved && availableCount > 0 ? '$availableCount' : null,
+                disabled: !isApproved,
               ),
               const SizedBox(height: 10),
 
@@ -200,12 +214,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 context,
                 icon: Icons.calendar_today,
                 title: 'Moje rezerwacje',
-                subtitle: pendingCount > 0
-                    ? '$pendingCount próśb czeka na odpowiedź'
-                    : 'Sprawdź swoje rezerwacje',
+                subtitle: isApproved
+                    ? (pendingCount > 0
+                        ? '$pendingCount próśb czeka na odpowiedź'
+                        : 'Sprawdź swoje rezerwacje')
+                    : 'Konto nieaktywne',
                 color: const Color(0xFFF59E0B),
-                onTap: () => context.go('/reservations'),
-                badge: pendingCount > 0 ? '$pendingCount' : null,
+                onTap: isApproved ? () => context.go('/reservations') : null,
+                badge: isApproved && pendingCount > 0 ? '$pendingCount' : null,
+                disabled: !isApproved,
               ),
             ],
           ),
@@ -220,66 +237,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required String title,
     required String subtitle,
     required Color color,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
     String? badge,
+    bool disabled = false,
   }) {
+    final effectiveColor = disabled ? Colors.grey : color;
+
     return Card(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (badge != null)
+        child: Opacity(
+          opacity: disabled ? 0.5 : 1.0,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color,
+                    color: effectiveColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Icon(icon, color: effectiveColor, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              else
-                Icon(Icons.chevron_right, color: Colors.grey[400]),
-            ],
+                ),
+                if (badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: effectiveColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else if (disabled)
+                  Icon(Icons.lock, color: Colors.grey[400], size: 20)
+                else
+                  Icon(Icons.chevron_right, color: Colors.grey[400]),
+              ],
+            ),
           ),
         ),
       ),

@@ -202,26 +202,42 @@ class _UserCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                if (!showActions)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: user.isApproved
-                          ? const Color(0xFF10B981).withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      user.isApproved ? 'Aktywny' : 'Oczekuje',
-                      style: TextStyle(
+                if (!showActions && !user.isAdmin)
+                  GestureDetector(
+                    onTap: () => _toggleStatus(context, ref, user),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
                         color: user.isApproved
-                            ? const Color(0xFF10B981)
-                            : Colors.orange,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                            ? const Color(0xFF10B981).withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user.isApproved ? 'Aktywny' : 'Nieaktywny',
+                            style: TextStyle(
+                              color: user.isApproved
+                                  ? const Color(0xFF10B981)
+                                  : Colors.orange,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.swap_horiz,
+                            size: 14,
+                            color: user.isApproved
+                                ? const Color(0xFF10B981)
+                                : Colors.orange,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -276,6 +292,29 @@ class _UserCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _toggleStatus(BuildContext context, WidgetRef ref, PendingUser user) async {
+    final service = ref.read(adminServiceProvider);
+    if (user.isApproved) {
+      await service.revokeApproval(user.id);
+    } else {
+      await service.approveUser(user.id);
+    }
+    ref.invalidate(pendingApprovalsProvider);
+    ref.invalidate(allUsersProvider);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            user.isApproved
+                ? '${user.displayName} dezaktywowany'
+                : '${user.displayName} aktywowany',
+          ),
+          backgroundColor: user.isApproved ? Colors.orange : const Color(0xFF10B981),
+        ),
+      );
+    }
   }
 
   void _approve(BuildContext context, WidgetRef ref, PendingUser user) async {
