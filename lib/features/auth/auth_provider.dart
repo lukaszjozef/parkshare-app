@@ -100,10 +100,11 @@ class AuthService {
         .maybeSingle();
 
     if (existing == null) {
-      // Create user entry
+      // Create user entry - approved by default
       await _client.from('users').insert({
         'auth_id': user.id,
         'email': user.email,
+        'is_approved': true,
       });
     }
   }
