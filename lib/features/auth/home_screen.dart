@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'auth_provider.dart';
 import '../reservations/reservations_provider.dart';
 import '../spots/availability_provider.dart';
 import '../admin/admin_provider.dart';
+import '../../core/push_notifications.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +16,22 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _pushSubscribed = true; // assume subscribed until checked
+  bool _pushSupported = false;
+  bool _pushLoading = false;
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() async {
       await ref.read(authServiceProvider).ensureUserExists();
+      if (kIsWeb) {
+        _pushSupported = PushNotificationService.isSupported;
+        if (_pushSupported) {
+          _pushSubscribed = await PushNotificationService.isSubscribed();
+          if (mounted) setState(() {});
+        }
+      }
     });
   }
 
@@ -143,6 +156,78 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Push notification banner
+              if (_pushSupported && !_pushSubscribed)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF2563EB).withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.notifications_active,
+                        color: Color(0xFF2563EB),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Włącz powiadomienia',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                            Text(
+                              'Dostaniesz info gdy pojawi się wolne miejsce',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _pushLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : TextButton(
+                              onPressed: () async {
+                                setState(() => _pushLoading = true);
+                                final ok =
+                                    await PushNotificationService.subscribe();
+                                if (mounted) {
+                                  setState(() {
+                                    _pushSubscribed = ok;
+                                    _pushLoading = false;
+                                  });
+                                  if (ok) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Powiadomienia włączone!'),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('Włącz'),
+                            ),
+                    ],
+                  ),
+                ),
 
               // Stats row
               Row(
