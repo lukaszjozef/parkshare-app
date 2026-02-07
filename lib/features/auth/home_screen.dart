@@ -309,6 +309,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 badge: isApproved && pendingCount > 0 ? '$pendingCount' : null,
                 disabled: !isApproved,
               ),
+              const SizedBox(height: 10),
+
+              _buildActionCard(
+                context,
+                icon: Icons.lightbulb_outline,
+                title: 'Opinie i pomysły',
+                subtitle: 'Zaproponuj zmiany, głosuj na pomysły',
+                color: const Color(0xFF8B5CF6),
+                onTap: () => context.go('/feedback'),
+              ),
             ],
           ),
         ),
