@@ -16,7 +16,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pages = [
     const _OnboardingPage(
       icon: Icons.local_parking,
-      title: 'Witaj w ParkShare',
+      title: 'Witaj w ParkShareG181',
       description: 'Użyczaj i rezerwuj miejsca parkingowe wśród sąsiadów.\nBez SMS-ów, bez czekania.',
       color: Color(0xFF2563EB),
     ),

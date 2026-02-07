@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'ParkShare',
+                  'ParkShareG181',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 32,

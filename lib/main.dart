@@ -12,18 +12,18 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: ParkShareApp(),
+      child: ParkShareG181App(),
     ),
   );
 }
 
-class ParkShareApp extends StatelessWidget {
-  const ParkShareApp({super.key});
+class ParkShareG181App extends StatelessWidget {
+  const ParkShareG181App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'ParkShare',
+      title: 'ParkShareG181',
       theme: AppTheme.lightTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

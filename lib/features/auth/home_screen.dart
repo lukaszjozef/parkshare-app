@@ -59,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ParkShare'),
+        title: const Text('ParkShareG181'),
         actions: [
           if (isAdminUser)
             IconButton(
