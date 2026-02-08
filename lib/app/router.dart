@@ -15,6 +15,7 @@ import '../features/reservations/reserve_screen.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/admin/admin_screen.dart';
 import '../features/feedback/feedback_screen.dart';
+import '../features/help/how_it_works_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -92,6 +93,10 @@ final router = GoRouter(
     GoRoute(
       path: '/feedback',
       builder: (context, state) => const FeedbackScreen(),
+    ),
+    GoRoute(
+      path: '/how-it-works',
+      builder: (context, state) => const HowItWorksScreen(),
     ),
     GoRoute(
       path: '/chat/:id',

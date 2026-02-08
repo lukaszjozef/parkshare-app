@@ -319,6 +319,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: const Color(0xFF8B5CF6),
                 onTap: () => context.go('/feedback'),
               ),
+              const SizedBox(height: 10),
+
+              _buildActionCard(
+                context,
+                icon: Icons.help_outline,
+                title: 'Jak to działa',
+                subtitle: 'Instrukcja krok po kroku',
+                color: Colors.grey,
+                onTap: () => context.go('/how-it-works'),
+              ),
             ],
           ),
         ),
