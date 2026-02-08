@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HowItWorksScreen extends StatelessWidget {
   const HowItWorksScreen({super.key});
@@ -8,6 +9,10 @@ class HowItWorksScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Jak to działa'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

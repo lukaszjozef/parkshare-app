@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'feedback_provider.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
@@ -67,6 +68,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Opinie i pomysły'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
       ),
       body: Column(
         children: [
