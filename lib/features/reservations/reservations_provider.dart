@@ -214,6 +214,17 @@ class Reservation {
     );
   }
 
+  bool get isPending => status == 'pending';
+  bool get isAccepted => status == 'accepted';
+
+  /// Masked spot number - full only when accepted
+  String get displaySpotNumber {
+    final num = spotNumber ?? '???';
+    if (isAccepted) return num;
+    if (num.isEmpty) return '***';
+    return num[0] + '*' * (num.length - 1);
+  }
+
   String get statusText {
     switch (status) {
       case 'pending': return 'Oczekuje';
@@ -231,6 +242,4 @@ class Reservation {
     return '${startsAt.day}.${startsAt.month} $startTime - $endTime';
   }
 
-  bool get isPending => status == 'pending';
-  bool get isAccepted => status == 'accepted';
 }

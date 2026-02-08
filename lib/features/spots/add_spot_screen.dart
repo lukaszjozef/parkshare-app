@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'spots_provider.dart';
@@ -129,18 +130,50 @@ class _AddSpotScreenState extends ConsumerState<AddSpotScreen> {
               // Spot number
               TextFormField(
                 controller: _spotNumberController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
                 decoration: const InputDecoration(
                   labelText: 'Numer miejsca *',
-                  hintText: 'np. 42, A15',
+                  hintText: 'np. 1, 42, 067',
                   prefixIcon: Icon(Icons.tag),
                   border: OutlineInputBorder(),
+                  helperText: 'Wpisz numer 1-999. Zostanie zapisany jako 3 cyfry (np. 1 → 001)',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Podaj numer miejsca';
                   }
+                  final number = int.tryParse(value);
+                  if (number == null || number < 1 || number > 999) {
+                    return 'Numer musi być liczbą od 1 do 999';
+                  }
                   return null;
                 },
+              ),
+              const SizedBox(height: 8),
+
+              // Privacy info
+              Card(
+                color: Colors.amber[50],
+                child: const Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: Colors.amber, size: 20),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Pełny numer miejsca jest widoczny tylko dla Ciebie. '
+                          'Inni zobaczą go dopiero po zaakceptowaniu rezerwacji.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
 

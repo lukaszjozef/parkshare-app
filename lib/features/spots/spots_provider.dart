@@ -57,10 +57,13 @@ class SpotsService {
     final userId = await _getUserId();
     if (userId == null) throw Exception('User not found');
 
+    // Pad to 3 digits: 1 → 001, 67 → 067
+    final paddedNumber = spotNumber.padLeft(3, '0');
+
     await _client.from('parking_spots').insert({
       'owner_id': userId,
       'building': building,
-      'spot_number': spotNumber,
+      'spot_number': paddedNumber,
       'level': level,
       'description': description,
       'is_active': true,
@@ -74,9 +77,11 @@ class SpotsService {
     String? level,
     String? description,
   }) async {
+    final paddedNumber = spotNumber.padLeft(3, '0');
+
     await _client.from('parking_spots').update({
       'building': building,
-      'spot_number': spotNumber,
+      'spot_number': paddedNumber,
       'level': level,
       'description': description,
     }).eq('id', spotId);
@@ -115,6 +120,13 @@ class ParkingSpot {
     required this.isActive,
     required this.createdAt,
   });
+
+  /// Masked number: first digit visible, rest replaced with *
+  /// e.g. "142" → "1**", "067" → "0**"
+  String get maskedSpotNumber {
+    if (spotNumber.isEmpty) return '***';
+    return spotNumber[0] + '*' * (spotNumber.length - 1);
+  }
 
   factory ParkingSpot.fromJson(Map<String, dynamic> json) {
     return ParkingSpot(

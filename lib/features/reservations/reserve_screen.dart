@@ -114,7 +114,7 @@ class _ReserveScreenState extends ConsumerState<ReserveScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Miejsce ${spot.spot.spotNumber}',
+                                    'Miejsce ${spot.spot.maskedSpotNumber}',
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,

@@ -307,7 +307,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Miejsce ${item.spot.spotNumber}',
+                                'Miejsce ${item.spot.maskedSpotNumber}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

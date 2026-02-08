@@ -172,7 +172,7 @@ class _ReservationCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Miejsce ${reservation.spotNumber ?? '?'}',
+                        'Miejsce ${reservation.displaySpotNumber}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
