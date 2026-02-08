@@ -2,9 +2,7 @@
 // Sends Web Push notifications to specified users
 //
 // Deploy: supabase functions deploy send-push
-// Set secrets:
-//   supabase secrets set VAPID_PUBLIC_KEY=BHD3AazTUuQi4AHmbtvM_CO9iN4MwlOuiQpE8yeNH7WVtVkq_Vz5VO0nM8d_MaEHQU6zfdJ_7-39SqOVQgWSueY
-//   supabase secrets set VAPID_PRIVATE_KEY=vj-XwBIr1Pd8KzYu69Qf_v51eZG4nKPt_sOrFdxCu0g
+// Set secrets via: supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=...
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

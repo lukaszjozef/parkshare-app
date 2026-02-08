@@ -4,8 +4,7 @@ import 'package:web/web.dart' as web;
 import 'package:flutter/foundation.dart';
 import 'supabase_client.dart';
 
-const vapidPublicKey =
-    'BHD3AazTUuQi4AHmbtvM_CO9iN4MwlOuiQpE8yeNH7WVtVkq_Vz5VO0nM8d_MaEHQU6zfdJ_7-39SqOVQgWSueY';
+const vapidPublicKey = String.fromEnvironment('VAPID_PUBLIC_KEY');
 
 @JS('eval')
 external JSFunction _eval(JSString code);

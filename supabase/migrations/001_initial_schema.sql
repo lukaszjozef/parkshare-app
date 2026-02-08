@@ -1,5 +1,5 @@
 -- ParkShare Initial Schema
--- Run this in Supabase SQL Editor: https://supabase.com/dashboard/project/incgqkflbmcxwjwqxiom/sql
+-- Run this in Supabase SQL Editor
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
